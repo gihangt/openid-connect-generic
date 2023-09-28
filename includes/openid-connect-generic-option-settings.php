@@ -45,6 +45,7 @@
  * @property string $displayname_format     The key(s) in the user claim array to formulate the user's display name.
  * @property bool   $identify_with_username The flag which indicates how the user's identity will be determined.
  * @property int    $state_time_limit       The valid time limit of the state, in seconds. Defaults to 180 seconds.
+ * @property string $login_button_text      The text to display on the login button.
  *
  * Plugin Settings:
  *
@@ -103,6 +104,7 @@ class OpenID_Connect_Generic_Option_Settings {
 		'acr_values'                => 'OIDC_ACR_VALUES',
 		'enable_logging'            => 'OIDC_ENABLE_LOGGING',
 		'log_limit'                 => 'OIDC_LOG_LIMIT',
+		'login_button_text'         => 'OIDC_LOGIN_BUTTON_TEXT',
 	);
 
 	/**

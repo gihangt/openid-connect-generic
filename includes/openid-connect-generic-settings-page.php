@@ -208,6 +208,14 @@ class OpenID_Connect_Generic_Settings_Page {
 		 * - example (optional example will appear beneath description and be wrapped in <code>)
 		 */
 		$fields = array(
+			// Login button text
+			'login_button_text' => array(
+				'title'       => __( 'Login Button Text', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Text to display on the login button.', 'daggerhart-openid-connect-generic' ),
+				'example'     => __( 'Login with OpenID Connect', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'client_settings',
+			),
 			'login_type'        => array(
 				'title'       => __( 'Login Type', 'daggerhart-openid-connect-generic' ),
 				'description' => __( 'Select how the client (login form) should provide login options.', 'daggerhart-openid-connect-generic' ),

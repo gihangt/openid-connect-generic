@@ -108,6 +108,12 @@ class OpenID_Connect_Generic_Client {
 	private $logger;
 
 	/**
+	 * Login button text.
+	 * @var string
+	 */
+	private $login_button_text;
+
+	/**
 	 * Client constructor.
 	 *
 	 * @param string                               $client_id         @see OpenID_Connect_Generic_Option_Settings::client_id for description.
@@ -120,8 +126,9 @@ class OpenID_Connect_Generic_Client {
 	 * @param string                               $acr_values        @see OpenID_Connect_Generic_Option_Settings::acr_values for description.
 	 * @param int                                  $state_time_limit  @see OpenID_Connect_Generic_Option_Settings::state_time_limit for description.
 	 * @param OpenID_Connect_Generic_Option_Logger $logger            The plugin logging object instance.
+	 * @param string                               $login_button_text @see OpenID_Connect_Generic_Option_Settings::login_button_text for description.
 	 */
-	public function __construct( $client_id, $client_secret, $scope, $endpoint_login, $endpoint_userinfo, $endpoint_token, $redirect_uri, $acr_values, $state_time_limit, $logger ) {
+	public function __construct( $client_id, $client_secret, $scope, $endpoint_login, $endpoint_userinfo, $endpoint_token, $redirect_uri, $acr_values, $state_time_limit, $logger, $login_button_text ) {
 		$this->client_id = $client_id;
 		$this->client_secret = $client_secret;
 		$this->scope = $scope;
@@ -132,6 +139,7 @@ class OpenID_Connect_Generic_Client {
 		$this->acr_values = $acr_values;
 		$this->state_time_limit = $state_time_limit;
 		$this->logger = $logger;
+		$this->login_button_text = $login_button_text;
 	}
 
 	/**

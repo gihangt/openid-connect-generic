@@ -136,6 +136,14 @@ class OpenID_Connect_Generic {
 	}
 
 	/**
+	 * Override default settings.
+	 */
+	public function override_settings() {
+		
+	}
+
+
+	/**
 	 * WordPress Hook 'init'.
 	 *
 	 * @return void
@@ -163,7 +171,8 @@ class OpenID_Connect_Generic {
 			$redirect_uri,
 			$this->settings->acr_values,
 			$state_time_limit,
-			$this->logger
+			$this->logger,
+			$this->settings->login_button_text
 		);
 
 		$this->client_wrapper = OpenID_Connect_Generic_Client_Wrapper::register( $this->client, $this->settings, $this->logger );
@@ -347,6 +356,7 @@ class OpenID_Connect_Generic {
 				'endpoint_token'       => defined( 'OIDC_ENDPOINT_TOKEN_URL' ) ? OIDC_ENDPOINT_TOKEN_URL : '',
 				'endpoint_end_session' => defined( 'OIDC_ENDPOINT_LOGOUT_URL' ) ? OIDC_ENDPOINT_LOGOUT_URL : '',
 				'acr_values'           => defined( 'OIDC_ACR_VALUES' ) ? OIDC_ACR_VALUES : '',
+				'login_button_text'    => defined( 'OIDC_LOGIN_BUTTON_TEXT' ) ? OIDC_LOGIN_BUTTON_TEXT : 'Login with FOSSDLE SSO',
 
 				// Non-standard settings.
 				'no_sslverify'    => 0,
@@ -381,6 +391,30 @@ class OpenID_Connect_Generic {
 		add_filter( 'the_content_feed', array( $plugin, 'enforce_privacy_feeds' ), 999 );
 		add_filter( 'the_excerpt_rss', array( $plugin, 'enforce_privacy_feeds' ), 999 );
 		add_filter( 'comment_text_rss', array( $plugin, 'enforce_privacy_feeds' ), 999 );
+
+		// Update SSO button text. Get the text from the settings.
+		add_filter('openid-connect-generic-login-button-text', array( $plugin, 'get_login_button_text' ));
+
+		// Modify user details in case of IDP change based on user_claim data.
+		add_action('openid-connect-generic-update-user-using-current-claim', function( $user, $user_claim) {
+			// Update the user's email address if it has changed.
+			if ( !empty( $user_claim['email'] ) ) {
+				if ( $user_claim['email'] != $user->user_email ) {
+					$user->user_email = $user_claim['email'];
+					wp_update_user( $user );
+				}
+			}
+			// Update the user's display name if it has changed.
+			if ( !empty( $user_claim['name'] ) ) {
+				if ( $user_claim['name'] != $user->display_name ) {
+					$user->display_name = $user_claim['name'];
+					wp_update_user( $user );
+				}
+			}
+		}, 10, 2); 
+
+		// Disable email field in profile page.
+		add_action('admin_head-profile.php', array( $plugin, 'disable_email_field' ));
 	}
 
 	/**
@@ -391,12 +425,67 @@ class OpenID_Connect_Generic {
 	public static function instance() {
 		if ( null === self::$_instance ) {
 			self::bootstrap();
+			self::override_settings();
 		}
 		return self::$_instance;
 	}
+
+	/**
+	 * Disable email field in profile page.
+	 *
+	 * @return void
+	 */
+	public function disable_email_field() {
+		$base_url = self::get_authorization_login_url($this->settings->endpoint_login);
+		echo $base_url;
+		// Check if the specific plugin is active
+		if (is_plugin_active('openid-connect-generic/openid-connect-generic.php')) {
+			// Make the email field readonly or disabled.
+			echo '<script>
+				jQuery(document).ready(function($) {
+					// Disable email.
+					$("#email").prop("disabled", true);
+					$("#email-description").html("<strong>Please log in <a href=\"'.$base_url.'\">Identify Provider </a> to change your details.</strong>");
+				});
+			</script>';
+		}
+	}
+
+	/**
+	 * Get login button text.
+	 * 
+	 * @return string
+	 */
+	public function get_login_button_text() {
+		return $this->settings->login_button_text;
+	}
+
+	/**
+	 * Get Identify provider authorization login url.
+	 * 
+	 * @return string
+	 */
+	public static function get_authorization_login_url($url) {
+
+		// Use parse_url() to parse the URL
+		$parsed_url = parse_url($url);
+
+		// Check if the scheme (https) and host (auth.fossdle.org) components exist
+		if (isset($parsed_url['scheme']) && isset($parsed_url['host'])) {
+			// Reconstruct the base URL
+			$base_url = $parsed_url['scheme'] . "://" . $parsed_url['host'];
+			
+			// Output the base URL
+			return $base_url;
+		} else {
+			return "";
+		}
+	}
 }
 
+
 OpenID_Connect_Generic::instance();
+
 
 register_activation_hook( __FILE__, array( 'OpenID_Connect_Generic', 'activation' ) );
 register_deactivation_hook( __FILE__, array( 'OpenID_Connect_Generic', 'deactivation' ) );
